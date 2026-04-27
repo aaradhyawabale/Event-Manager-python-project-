@@ -1,0 +1,275 @@
+/* ============================================================
+   CampusEvents — Custom Styles
+   Design: Clean collegiate with indigo/amber accents
+   Font: Playfair Display (headings) + DM Sans (body)
+   ============================================================ */
+
+/* ── CSS Variables ── */
+:root {
+  --indigo:      #4f46e5;
+  --indigo-dark: #3730a3;
+  --indigo-light:#eef2ff;
+  --amber:       #f59e0b;
+  --amber-light: #fef3c7;
+  --text-dark:   #1e1b4b;
+  --text-muted:  #6b7280;
+  --surface:     #f9fafb;
+  --border:      #e5e7eb;
+  --white:       #ffffff;
+  --success:     #10b981;
+  --danger:      #ef4444;
+}
+
+/* ── Global ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background-color: var(--surface);
+  color: var(--text-dark);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Playfair Display', serif;
+}
+
+main { flex: 1; }
+
+/* ── Navbar ── */
+.navbar {
+  background: linear-gradient(135deg, var(--indigo-dark) 0%, var(--indigo) 100%);
+  box-shadow: 0 2px 12px rgba(79,70,229,.25);
+  padding-top: .85rem;
+  padding-bottom: .85rem;
+}
+
+.navbar-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  letter-spacing: .5px;
+}
+
+.nav-link {
+  color: rgba(255,255,255,.85) !important;
+  transition: color .2s;
+}
+.nav-link:hover { color: #fff !important; }
+
+.btn-admin {
+  background: rgba(255,255,255,.15);
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.3);
+  transition: background .2s;
+}
+.btn-admin:hover { background: rgba(255,255,255,.28); }
+
+.btn-logout {
+  background: rgba(239,68,68,.2);
+  color: #fca5a5 !important;
+  border: 1px solid rgba(239,68,68,.35);
+}
+.btn-logout:hover { background: rgba(239,68,68,.35); color: #fff !important; }
+
+/* ── Hero Section (Index) ── */
+.hero-section {
+  background: linear-gradient(135deg, var(--indigo) 0%, #6366f1 100%);
+  color: #fff;
+  border-radius: 1.25rem;
+  padding: 3.5rem 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  margin-bottom: .5rem;
+}
+
+.hero-subtitle {
+  font-size: 1.05rem;
+  opacity: .88;
+  margin: 0;
+}
+
+/* ── Event Cards ── */
+.event-card {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: transform .2s, box-shadow .2s;
+}
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(79,70,229,.12) !important;
+}
+
+/* Coloured top stripe */
+.card-accent        { height: 5px; }
+.accent-0 { background: var(--indigo); }
+.accent-1 { background: var(--amber); }
+.accent-2 { background: var(--success); }
+.accent-3 { background: #ec4899; }
+
+.event-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  color: var(--text-dark);
+}
+
+.event-meta li {
+  font-size: .9rem;
+  color: var(--text-muted);
+}
+
+/* ── Register Button ── */
+.btn-register {
+  background: linear-gradient(135deg, var(--indigo) 0%, #6366f1 100%);
+  color: #fff;
+  border: none;
+  border-radius: .6rem;
+  font-weight: 600;
+  padding: .6rem 1.2rem;
+  transition: opacity .2s, transform .1s;
+}
+.btn-register:hover { opacity: .9; color: #fff; transform: scale(1.01); }
+
+/* ── Forms ── */
+.form-card {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.form-heading {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+}
+
+.form-control, .form-select {
+  border-radius: .6rem;
+  border-color: var(--border);
+  transition: border-color .2s, box-shadow .2s;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--indigo);
+  box-shadow: 0 0 0 3px rgba(79,70,229,.15);
+}
+
+/* ── Event Summary Card (Register page) ── */
+.event-summary-card {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--indigo-light);
+}
+
+.event-icon-badge {
+  width: 48px; height: 48px;
+  background: var(--indigo);
+  color: #fff;
+  border-radius: .75rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+/* ── Admin Login ── */
+.admin-login-card {
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+}
+
+.admin-lock-icon {
+  width: 64px; height: 64px;
+  background: var(--indigo-light);
+  color: var(--indigo);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+}
+
+.btn-admin-login {
+  background: linear-gradient(135deg, var(--indigo-dark) 0%, var(--indigo) 100%);
+  color: #fff;
+  border: none;
+  border-radius: .6rem;
+  font-weight: 600;
+  transition: opacity .2s;
+}
+.btn-admin-login:hover { opacity: .9; color: #fff; }
+
+.demo-hint {
+  background: #f3f4f6;
+  border-radius: .5rem;
+  padding: .5rem 1rem;
+}
+
+/* ── Admin Dashboard ── */
+.btn-create {
+  background: var(--indigo);
+  color: #fff;
+  border: none;
+  border-radius: .6rem;
+  font-weight: 600;
+  padding: .55rem 1.2rem;
+  transition: background .2s;
+}
+.btn-create:hover { background: var(--indigo-dark); color: #fff; }
+
+/* Stat Cards */
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+}
+.stat-icon {
+  width: 44px; height: 44px;
+  border-radius: .6rem;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+}
+.stat-value { font-size: 1.6rem; font-weight: 700; line-height: 1; }
+.stat-label { font-size: .8rem; color: var(--text-muted); }
+
+/* Admin Table */
+.admin-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.admin-table thead th {
+  background: var(--indigo-light);
+  color: var(--indigo-dark);
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: .9rem 1.2rem;
+  border-bottom: 2px solid var(--indigo);
+}
+.admin-table tbody td {
+  padding: .9rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.admin-table tbody tr:last-child td { border-bottom: none; }
+.admin-table tbody tr:hover { background: var(--indigo-light); }
+
+/* ── Event Banner (Registrations page) ── */
+.event-banner {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--white);
+}
+
+/* ── Empty State ── */
+.empty-state { color: var(--text-muted); }
+
+/* ── Footer ── */
+.footer {
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  font-size: .875rem;
+}
+
+/* ── Utilities ── */
+.badge.bg-primary-subtle { background-color: var(--indigo-light) !important; }
+.badge.bg-info-subtle    { background-color: #e0f2fe !important; }

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Register — {{ event['title'] }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6 col-md-8">
+
+    <!-- Event Summary Card -->
+    <div class="card event-summary-card mb-4 shadow-sm">
+      <div class="card-body p-4">
+        <div class="d-flex align-items-center gap-3">
+          <div class="event-icon-badge">
+            <i class="bi bi-calendar-event-fill"></i>
+          </div>
+          <div>
+            <h5 class="mb-1 fw-bold">{{ event['title'] }}</h5>
+            <span class="text-muted small">
+              <i class="bi bi-geo-alt me-1"></i>{{ event['venue'] }}
+              &nbsp;|&nbsp;
+              <i class="bi bi-calendar3 me-1"></i>{{ event['date'] }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="card form-card shadow-sm">
+      <div class="card-body p-4">
+        <h4 class="form-heading mb-1">Register for this Event</h4>
+        <p class="text-muted small mb-4">Fill in your details below to confirm your spot.</p>
+
+        <form action="{{ url_for('submit_registration') }}" method="POST">
+          <!-- Hidden: pass event ID -->
+          <input type="hidden" name="event_id" value="{{ event['id'] }}"/>
+
+          <!-- Name -->
+          <div class="mb-3">
+            <label for="name" class="form-label fw-medium">
+              <i class="bi bi-person me-1"></i>Full Name
+            </label>
+            <input type="text" id="name" name="name" class="form-control form-control-lg"
+                   placeholder="e.g. Priya Sharma" required/>
+          </div>
+
+          <!-- Email -->
+          <div class="mb-3">
+            <label for="email" class="form-label fw-medium">
+              <i class="bi bi-envelope me-1"></i>Email Address
+            </label>
+            <input type="email" id="email" name="email" class="form-control form-control-lg"
+                   placeholder="e.g. priya@college.edu" required/>
+          </div>
+
+          <!-- Department -->
+          <div class="mb-4">
+            <label for="department" class="form-label fw-medium">
+              <i class="bi bi-building me-1"></i>Department
+            </label>
+            <select id="department" name="department" class="form-select form-select-lg" required>
+              <option value="" disabled selected>Select your department</option>
+              <option>Computer Science</option>
+              <option>Information Technology</option>
+              <option>Electronics & Communication</option>
+              <option>Mechanical Engineering</option>
+              <option>Civil Engineering</option>
+              <option>Electrical Engineering</option>
+              <option>Business Administration</option>
+              <option>Arts & Humanities</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-register btn-lg">
+              <i class="bi bi-check-circle me-1"></i> Confirm Registration
+            </button>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left me-1"></i> Back to Events
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
