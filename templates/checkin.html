@@ -1,0 +1,214 @@
+{% extends "base.html" %} 
+{% block title %}Check-in for {{ event.title }} — Admin{% endblock %} 
+
+{% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-lg border-0">
+        <div class="card-body p-5 text-center">
+          <h2 class="card-title mb-4">Check-in for "{{ event.title }}"</h2>
+          <p class="card-text lead text-muted">
+            Scan QR codes to check in attendees.
+          </p>
+
+          <form id="qr-verify-form" action="{{ url_for('verify_qr') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="event_id" value="{{ event.id }}" />
+            
+            <div class="mb-4">
+              <label class="form-label fw-bold">1. Upload QR Image</label>
+              <div
+                id="drop-area"
+                class="border border-2 border-dashed rounded p-4 text-muted bg-light"
+                style="cursor: pointer; transition: 0.3s;"
+                onclick="document.getElementById('qr-image-input').click()"
+              >
+                <div id="upload-prompt">
+                  <i class="bi bi-cloud-arrow-up display-4"></i><br />
+                  Drag & drop QR image here, or <strong>click to browse</strong>
+                </div>
+                
+                <div id="image-preview-container" class="d-none mt-2">
+                  <img id="image-preview" src="" alt="Image Preview" class="img-fluid rounded shadow-sm mb-2" style="max-height: 200px;">
+                  <p id="file-name" class="mb-0 fw-bold text-dark"></p>
+                  <button type="button" class="btn btn-sm btn-outline-danger mt-2" id="remove-image-btn" onclick="removeImage(event)">Remove Image</button>
+                </div>
+
+                <input
+                  type="file"
+                  id="qr-image-input"
+                  name="qr_image"
+                  accept="image/*"
+                  class="form-control d-none"
+                  onchange="handleFileSelect(this)"
+                />
+              </div>
+            </div>
+
+            <div class="position-relative my-4">
+                <hr>
+                <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted">OR</span>
+            </div>
+
+            <div class="mb-4">
+              <label for="qr_token_manual" class="form-label fw-bold">2. Enter QR Token Manually</label>
+              <input
+                type="text"
+                class="form-control form-control-lg text-center"
+                id="qr_token_manual"
+                name="qr_token"
+                placeholder="e.g., 550e8400-e29b-41d4-a716-446655440000"
+              />
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100" id="verify-btn">
+              <i class="bi bi-check-circle me-2"></i>Verify Check-in
+            </button>
+          </form>
+
+          <div id="verification-result" class="mt-4 p-3 rounded" style="display: none;">
+            <!-- Verification results will be displayed here -->
+          </div>
+
+          <div class="mt-4">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const qrImageInput = document.getElementById("qr-image-input");
+  const qrTokenManualInput = document.getElementById("qr_token_manual");
+  const verificationResultDiv = document.getElementById("verification-result");
+  const uploadPrompt = document.getElementById("upload-prompt");
+  const imagePreviewContainer = document.getElementById("image-preview-container");
+  const imagePreview = document.getElementById("image-preview");
+  const fileNameDisplay = document.getElementById("file-name");
+  const verifyBtn = document.getElementById("verify-btn");
+
+  // Handle file selection and show preview
+  function handleFileSelect(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      
+      // Update UI
+      fileNameDisplay.textContent = file.name;
+      uploadPrompt.classList.add("d-none");
+      imagePreviewContainer.classList.remove("d-none");
+      
+      // Show image preview
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        imagePreview.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      // Disable manual input to prevent conflict
+      qrTokenManualInput.value = "";
+      qrTokenManualInput.disabled = true;
+      qrTokenManualInput.placeholder = "Image selected. Remove image to type manually.";
+    }
+  }
+
+  function removeImage(event) {
+    event.stopPropagation(); // Prevent opening file browser
+    qrImageInput.value = "";
+    uploadPrompt.classList.remove("d-none");
+    imagePreviewContainer.classList.add("d-none");
+    imagePreview.src = "";
+    
+    // Re-enable manual input
+    qrTokenManualInput.disabled = false;
+    qrTokenManualInput.placeholder = "e.g., 550e8400-e29b-41d4-a716-446655440000";
+  }
+
+  // Handle drag and drop
+  const dropArea = document.getElementById("drop-area");
+
+  ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
+    dropArea.addEventListener(eventName, preventDefaults, false);
+    document.body.addEventListener(eventName, preventDefaults, false);
+  });
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  ["dragenter", "dragover"].forEach(eventName => {
+    dropArea.addEventListener(eventName, () => dropArea.classList.add("bg-secondary", "text-white"), false);
+  });
+
+  ["dragleave", "drop"].forEach(eventName => {
+    dropArea.addEventListener(eventName, () => dropArea.classList.remove("bg-secondary", "text-white"), false);
+  });
+
+  dropArea.addEventListener("drop", (e) => {
+    const dt = e.dataTransfer;
+    if (dt.files && dt.files.length > 0) {
+      qrImageInput.files = dt.files;
+      handleFileSelect(qrImageInput);
+    }
+  }, false);
+
+  // Handle form submission via AJAX
+  document.getElementById("qr-verify-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    
+    // Validation: Require either image or token
+    if (!qrImageInput.files.length && !qrTokenManualInput.value.trim()) {
+      displayResult("Please either upload a QR image or enter a token manually.", false);
+      return;
+    }
+
+    const form = e.target;
+    const formData = new FormData(form);
+
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Verifying...';
+
+    try {
+      const response = await fetch("{{ url_for('verify_qr') }}", {
+        method: "POST",
+        body: formData,
+      });
+      
+      const result = await response.text();
+      displayResult(result, result.includes("successful"));
+      
+      // Reset form if successful
+      if (result.includes("successful")) {
+         removeImage(new Event('click')); // Reset image
+         qrTokenManualInput.value = ""; // Reset text
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      displayResult("An error occurred communicating with the server.", false);
+    } finally {
+      verifyBtn.disabled = false;
+      verifyBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Verify Check-in';
+    }
+  });
+
+  function displayResult(message, isSuccess) {
+    verificationResultDiv.style.display = "block";
+    verificationResultDiv.textContent = message;
+    
+    // Remove old classes
+    verificationResultDiv.classList.remove("bg-success", "bg-warning", "bg-danger", "text-white", "text-dark");
+    
+    if (isSuccess) {
+      verificationResultDiv.classList.add("bg-success", "text-white");
+    } else if (message.includes("Already checked in")) {
+      verificationResultDiv.classList.add("bg-warning", "text-dark");
+    } else {
+      verificationResultDiv.classList.add("bg-danger", "text-white");
+    }
+  }
+</script>
+{% endblock %}

@@ -79,6 +79,10 @@
               </span>
             </td>
             <td class="text-center">
+              <a href="{{ url_for('checkin_scanner', event_id=event['id']) }}"
+                 class="btn btn-sm btn-outline-success me-1" title="Check-in Attendees">
+                <i class="bi bi-qr-code"></i>
+              </a>
               <a href="{{ url_for('view_registrations', event_id=event['id']) }}"
                  class="btn btn-sm btn-outline-primary me-1" title="View Registrations">
                 <i class="bi bi-eye"></i>
