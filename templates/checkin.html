@@ -5,7 +5,7 @@
 <div class="container my-5">
   <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
-      <div class="card shadow-lg border-0">
+      <div class="card checkin-card shadow-lg border-0">
         <div class="card-body p-5 text-center">
           <h2 class="card-title mb-4">Check-in for "{{ event.title }}"</h2>
           <p class="card-text lead text-muted">
@@ -19,7 +19,7 @@
               <label class="form-label fw-bold">1. Upload QR Image</label>
               <div
                 id="drop-area"
-                class="border border-2 border-dashed rounded p-4 text-muted bg-light"
+                class="border border-2 border-dashed rounded p-4 text-muted"
                 style="cursor: pointer; transition: 0.3s;"
                 onclick="document.getElementById('qr-image-input').click()"
               >
@@ -30,7 +30,7 @@
                 
                 <div id="image-preview-container" class="d-none mt-2">
                   <img id="image-preview" src="" alt="Image Preview" class="img-fluid rounded shadow-sm mb-2" style="max-height: 200px;">
-                  <p id="file-name" class="mb-0 fw-bold text-dark"></p>
+                  <p id="file-name" class="mb-0 fw-bold"></p>
                   <button type="button" class="btn btn-sm btn-outline-danger mt-2" id="remove-image-btn" onclick="removeImage(event)">Remove Image</button>
                 </div>
 
@@ -47,7 +47,7 @@
 
             <div class="position-relative my-4">
                 <hr>
-                <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted">OR</span>
+                <span class="position-absolute top-50 start-50 translate-middle checkin-divider-label px-3 text-muted">OR</span>
             </div>
 
             <div class="mb-4">

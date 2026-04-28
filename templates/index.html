@@ -20,7 +20,9 @@
 
         <div class="card-body d-flex flex-column p-4">
           <h5 class="card-title event-title">{{ event['title'] }}</h5>
+          {% if event['description'] %}
           <p class="card-text text-muted flex-grow-1">{{ event['description'] }}</p>
+          {% endif %}
 
           <ul class="list-unstyled event-meta mt-3 mb-4">
             <li>
