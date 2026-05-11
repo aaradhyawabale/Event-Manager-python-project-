@@ -8,7 +8,9 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import sqlite3
 import os
 import uuid
-import qrcode, io, base64
+import qrcode
+from qrcode.image.pil import PilImage # Import PilImage factory
+import io, base64
 from PIL import Image
 import cv2
 import numpy as np
@@ -17,6 +19,8 @@ from flask_mail import Mail, Message
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 import logging
+
+from payment_verifier import verify_payment_screenshot
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -106,6 +110,23 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
+    # Add new columns to payments table for OCR results
+    for col, defn in [
+        ("ocr_raw_text", "TEXT"),
+        ("confidence_score", "REAL DEFAULT 0"),
+        ("amount_detected", "TEXT"),
+        ("upi_id_detected", "TEXT"),
+        ("txn_id_detected", "TEXT"),
+        ("success_keyword_found", "INTEGER DEFAULT 0"),
+        ("status", "TEXT DEFAULT 'pending'"),
+        ("admin_note", "TEXT"),
+        ("verified_at", "TEXT"),
+    ]:
+        try:
+            c.execute(f"ALTER TABLE payments ADD COLUMN {col} {defn}")
+        except sqlite3.OperationalError:
+            pass
+
     conn.commit()
     conn.close()
 
@@ -119,25 +140,19 @@ def generate_qr_file(token):
     qr_dir = os.path.join(app.root_path, 'static', 'qrcodes')
     os.makedirs(qr_dir, exist_ok=True)
     filepath = os.path.join(qr_dir, f"{token}.png")
-    qrcode.make(token).save(filepath)
+    qrcode.make(token, image_factory=PilImage).save(filepath)
     return f"{token}.png"
 
 def generate_qr_base64(data):
-    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=8, border=4)
-    qr.add_data(data)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
+    qr_img = qrcode.make(data, image_factory=PilImage)
     buf = io.BytesIO()
-    img.save(buf, format="PNG")
+    qr_img.save(buf, format="PNG")
     return base64.b64encode(buf.getvalue()).decode("utf-8")
 
 def generate_qr_image_bytes(token):
-    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
-    qr.add_data(token)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
+    qr_img = qrcode.make(token, image_factory=PilImage)
     buf = io.BytesIO()
-    img.save(buf, format="PNG")
+    qr_img.save(buf, format="PNG")
     return buf.getvalue()
 
 def decode_qr_image(image_stream):
@@ -196,15 +211,17 @@ def register(event_id):
 
 @app.route("/submit_registration", methods=["POST"])
 def submit_registration():
-    event_id   = request.form["event_id"]
-    name       = request.form["name"].strip()
-    email      = request.form["email"].strip()
-    department = request.form["department"].strip()
+    event_id   = request.form.get("event_id")
+    name       = request.form.get("name", "").strip()
+    email      = request.form.get("email", "").strip()
+    department = request.form.get("department", "").strip()
     qr_token   = str(uuid.uuid4())
 
-    if not name or not email or not department:
+    logger.info(f"Received registration request for event_id: {event_id}, email: {email}")
+
+    if not name or not email or not department or not event_id:
         flash("All fields are required!", "danger")
-        return redirect(url_for("register", event_id=event_id))
+        return redirect(url_for("register", event_id=event_id or 1))
 
     conn = get_db()
     event = conn.execute("SELECT * FROM events WHERE id = ?", (event_id,)).fetchone()
@@ -219,13 +236,22 @@ def submit_registration():
 
     # Prevent duplicate registrations by same email for same event
     existing = conn.execute(
-        "SELECT id FROM registrations WHERE event_id = ? AND email = ?",
+        "SELECT id, payment_status FROM registrations WHERE event_id = ? AND email = ?",
         (event_id, email)
     ).fetchone()
+
     if existing:
-        flash("You have already registered for this event with this email.", "warning")
-        conn.close()
-        return redirect(url_for("register", event_id=event_id))
+        if existing["payment_status"] == "verified":
+            flash("You are already registered and your payment is verified! ✅", "success")
+            conn.close()
+            return redirect(url_for("index"))
+        else:
+            # If they already registered but payment isn't verified yet, 
+            # take them to the payment upload page or status page
+            flash("You have already started registration. Please complete your payment or check status.", "info")
+            reg_id = existing["id"]
+            conn.close()
+            return redirect(url_for("upload_payment", reg_id=reg_id))
 
     conn.execute(
         "INSERT INTO registrations (event_id, name, email, department, qr_token, checked_in, payment_status) VALUES (?,?,?,?,?,?,?)",
@@ -276,13 +302,12 @@ def upload_payment(reg_id):
             flash("Invalid file type. Please upload PNG, JPG, or JPEG.", "danger")
             return redirect(request.url)
 
-        filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
+        filename = f"{uuid.uuid4()}_{secure_filename(file.filename or '')}"
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
 
         # Run OCR verification
-        from payment_verifier import verify_payment_screenshot
-        result = verify_payment_screenshot(
+        verification_result = verify_payment_screenshot(
             filepath=filepath,
             expected_amount=reg["amount"],
             expected_upi_id=reg["upi_id"]
@@ -295,25 +320,25 @@ def upload_payment(reg_id):
                txn_id_detected, success_keyword_found, status)
                VALUES (?,?,?,?,?,?,?,?,?,?)""",
             (reg_id, filename, now,
-             result["ocr_text"][:2000],
-             result["confidence"],
-             result["amount_detected"],
-             result["upi_id_detected"],
-             result["txn_id_detected"],
-             1 if result["success_keyword_found"] else 0,
-             result["status"])
+             verification_result["ocr_text"],
+             verification_result["confidence"],
+             verification_result["amount_detected"],
+             verification_result["upi_id_detected"],
+             verification_result["txn_id_detected"],
+             1 if verification_result["success_keyword_found"] else 0,
+             verification_result["status"])
         )
         conn.execute(
             "UPDATE registrations SET payment_status = ? WHERE id = ?",
-            (result["status"], reg_id)
+            (verification_result["status"], reg_id)
         )
         conn.commit()
         conn.close()
 
-        if result["status"] == "verified":
+        if verification_result["status"] == "verified":
             send_registration_email(reg["email"], reg["name"], reg["title"], reg["qr_token"])
             flash("✅ Payment verified! Registration confirmed.", "success")
-        elif result["status"] == "manual_review":
+        elif verification_result["status"] == "manual_review":
             flash("⏳ Screenshot received. Our team will verify and confirm shortly.", "info")
         else:
             flash("❌ Screenshot could not be verified. Please upload a clear payment screenshot.", "warning")
@@ -611,4 +636,4 @@ if __name__ == "__main__":
     print(f"DEBUG: DB path → {DB_PATH}")
     init_db()
     print("DEBUG: Database initialized.")
-    app.run(debug=True, port=5002)
+    app.run(debug=True, port=5003)

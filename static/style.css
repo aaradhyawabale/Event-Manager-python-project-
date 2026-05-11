@@ -99,6 +99,77 @@ main { flex: 1; }
   color: var(--highlight-color) !important;
 }
 
+/* ── Modals (Dark Theme) ── */
+.modal-content {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-soft);
+  color: var(--text-primary);
+}
+.modal-header, .modal-footer {
+  border-color: var(--border-soft);
+}
+.modal-body p {
+  color: var(--text-primary);
+}
+.modal-body .text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* ── Admin Tables & Stats ── */
+.stat-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-soft);
+  transition: transform 0.2s ease;
+}
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 1.5rem;
+}
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.table-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-soft);
+  overflow: hidden;
+}
+.admin-table {
+  color: var(--text-primary);
+}
+.admin-table thead th {
+  background-color: rgba(15, 23, 42, 0.5);
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-soft);
+  padding: 1rem;
+}
+.admin-table tbody td {
+  padding: 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-soft);
+}
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .nav-link {
   color: var(--text-muted) !important;
   transition: color var(--transition-speed) ease, transform 0.15s ease;
@@ -325,6 +396,75 @@ main { flex: 1; }
   display: flex; align-items: center; justify-content: center;
   font-size: 1.4rem;
   flex-shrink: 0;
+}
+
+/* ── Mobile Responsiveness & Adjustments ── */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 2.5rem 1.25rem;
+    margin-bottom: 2rem;
+  }
+  
+  .navbar-brand {
+    font-size: 1.15rem;
+  }
+
+  .stat-card {
+    padding: 1rem !important;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+  }
+
+  .admin-table thead {
+    display: none; /* Hide table headers on very small screens for card-like view */
+  }
+
+  .admin-table, .admin-table tbody, .admin-table tr, .admin-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-table tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--border-radius-md);
+    background: rgba(30, 41, 59, 0.3);
+  }
+
+  .admin-table td {
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .admin-table td:last-child {
+    border-bottom: none;
+  }
+
+  .admin-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    width: 45%;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+
+  .table-responsive {
+    border: none;
+  }
 }
 
 /* ── Admin Login ── */

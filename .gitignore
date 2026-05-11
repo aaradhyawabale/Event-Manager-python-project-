@@ -11,3 +11,5 @@ database.db
 .DS_Store
 tempCodeRunnerFile.py
 static/qrcodes/*.png
+static/payment_screenshots/*
+!static/payment_screenshots/.gitkeep
