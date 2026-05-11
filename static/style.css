@@ -685,3 +685,9 @@ main { flex: 1; }
 .payment-status-verified { background-color: rgba(34, 197, 94, 0.2); color: var(--secondary-accent); }
 .payment-status-failed { background-color: rgba(239, 68, 68, 0.2); color: #f87171; }
 .payment-status-review { background-color: rgba(99, 102, 241, 0.2); color: var(--primary-accent); }
+
+.text-muted-small {
+  color: #aeb9c7;
+  font-size: 0.825rem;
+  opacity: 0.85;
+}
