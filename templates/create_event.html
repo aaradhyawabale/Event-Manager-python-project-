@@ -1,74 +1,67 @@
 {% extends "base.html" %}
 {% block title %}Create Event — CampusEvents{% endblock %}
-
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-lg-7 col-md-9">
-
     <div class="d-flex align-items-center gap-2 mb-4">
-      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i>
-      </a>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
       <h3 class="mb-0 fw-bold">Create New Event</h3>
     </div>
-
     <div class="card form-card shadow-sm">
       <div class="card-body p-4">
-
         <form action="{{ url_for('create_event') }}" method="POST">
-
-          <!-- Title -->
           <div class="mb-3">
-            <label for="title" class="form-label fw-medium">
-              <i class="bi bi-type-h1 me-1"></i>Event Title
-            </label>
-            <input type="text" id="title" name="title"
-                   class="form-control form-control-lg"
-                   placeholder="e.g. Annual Tech Fest 2025" required/>
+            <label for="title" class="form-label fw-medium"><i class="bi bi-type-h1 me-1"></i>Event Title</label>
+            <input type="text" id="title" name="title" class="form-control form-control-lg" placeholder="e.g. Annual Tech Fest 2025" required/>
           </div>
-
-          <!-- Description -->
           <div class="mb-3">
-            <label for="description" class="form-label fw-medium">
-              <i class="bi bi-card-text me-1"></i>Description
-            </label>
-            <textarea id="description" name="description"
-                      class="form-control" rows="4"
-                      placeholder="Brief description of the event..." required></textarea>
+            <label for="description" class="form-label fw-medium"><i class="bi bi-card-text me-1"></i>Description</label>
+            <textarea id="description" name="description" class="form-control" rows="4" placeholder="Brief description..." required></textarea>
           </div>
-
-          <!-- Date -->
           <div class="mb-3">
-            <label for="date" class="form-label fw-medium">
-              <i class="bi bi-calendar3 me-1"></i>Event Date
-            </label>
-            <input type="date" id="date" name="date"
-                   class="form-control form-control-lg" required/>
+            <label for="date" class="form-label fw-medium"><i class="bi bi-calendar3 me-1"></i>Event Date</label>
+            <input type="date" id="date" name="date" class="form-control form-control-lg" required/>
           </div>
-
-          <!-- Venue -->
           <div class="mb-4">
-            <label for="venue" class="form-label fw-medium">
-              <i class="bi bi-geo-alt me-1"></i>Venue
-            </label>
-            <input type="text" id="venue" name="venue"
-                   class="form-control form-control-lg"
-                   placeholder="e.g. Main Auditorium, Block A" required/>
+            <label for="venue" class="form-label fw-medium"><i class="bi bi-geo-alt me-1"></i>Venue</label>
+            <input type="text" id="venue" name="venue" class="form-control form-control-lg" placeholder="e.g. Main Auditorium" required/>
+          </div>
+
+          <!-- Payment Toggle -->
+          <div class="card border-warning mb-4 p-3">
+            <div class="form-check form-switch mb-2">
+              <input class="form-check-input" type="checkbox" role="switch" id="payment_required" name="payment_required" onchange="togglePayment(this)">
+              <label class="form-check-label fw-bold text-warning" for="payment_required">
+                <i class="bi bi-cash-coin me-1"></i> Require Payment?
+              </label>
+            </div>
+            <div id="payment_fields" style="display:none;">
+              <div class="mb-3">
+                <label for="upi_id" class="form-label fw-medium"><i class="bi bi-phone me-1"></i>UPI ID</label>
+                <input type="text" id="upi_id" name="upi_id" class="form-control" placeholder="e.g. yourname@upi or 9876543210@paytm"/>
+                <div class="form-text">Students will scan a QR to pay this UPI ID.</div>
+              </div>
+              <div class="mb-2">
+                <label for="amount" class="form-label fw-medium"><i class="bi bi-currency-rupee me-1"></i>Amount (₹)</label>
+                <input type="number" id="amount" name="amount" class="form-control" placeholder="e.g. 200" min="1" step="0.01"/>
+              </div>
+            </div>
           </div>
 
           <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-create btn-lg">
-              <i class="bi bi-plus-circle me-1"></i> Create Event
-            </button>
-            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
-              Cancel
-            </a>
+            <button type="submit" class="btn btn-create btn-lg"><i class="bi bi-plus-circle me-1"></i> Create Event</button>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
           </div>
-
         </form>
       </div>
     </div>
-
   </div>
 </div>
+<script>
+function togglePayment(cb) {
+  document.getElementById('payment_fields').style.display = cb.checked ? 'block' : 'none';
+  document.getElementById('upi_id').required = cb.checked;
+  document.getElementById('amount').required = cb.checked;
+}
+</script>
 {% endblock %}

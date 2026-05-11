@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Payment Status — CampusEvents{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow-lg border-0">
+      <div class="card-body p-5 text-center">
+
+        {% if reg['payment_status'] == 'verified' %}
+          <i class="bi bi-patch-check-fill text-success display-1 mb-3"></i>
+          <h2 class="fw-bold text-success">Payment Verified!</h2>
+          <p class="text-muted">Your registration for <strong>{{ reg['title'] }}</strong> is confirmed.</p>
+          <div class="alert alert-success mt-3">
+            <strong>Name:</strong> {{ reg['name'] }}<br>
+            <strong>Email:</strong> {{ reg['email'] }}<br>
+            <strong>Event:</strong> {{ reg['title'] }}<br>
+            <strong>Date:</strong> {{ reg['date'] }} | <strong>Venue:</strong> {{ reg['venue'] }}
+          </div>
+          <h5 class="mt-4 mb-2">Your Entry QR Code</h5>
+          <img src="{{ url_for('static', filename='qrcodes/' + qr_filename) }}" class="img-fluid border p-2 rounded mb-2" style="max-width:220px;">
+          <p class="text-muted small">Show this QR at the event entry gate.</p>
+
+        {% elif reg['payment_status'] == 'manual_review' %}
+          <i class="bi bi-hourglass-split text-warning display-1 mb-3"></i>
+          <h2 class="fw-bold text-warning">Under Review</h2>
+          <p class="text-muted">Your screenshot has been received and is being reviewed by our team.</p>
+          {% if payment %}
+          <div class="card border-0 bg-light p-3 text-start mt-3 mb-3">
+            <div class="small text-muted mb-1">OCR Analysis Summary</div>
+            <div><strong>Confidence Score:</strong>
+              <span class="badge {% if payment['confidence_score'] >= 75 %}bg-success{% elif payment['confidence_score'] >= 40 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                {{ payment['confidence_score'] | int }}%
+              </span>
+            </div>
+            {% if payment['amount_detected'] %}<div class="mt-1"><strong>Amount Detected:</strong> ₹{{ payment['amount_detected'] }}</div>{% endif %}
+            {% if payment['txn_id_detected'] %}<div class="mt-1"><strong>Transaction ID:</strong> {{ payment['txn_id_detected'] }}</div>{% endif %}
+          </div>
+          {% endif %}
+          <p class="text-muted small">You'll receive a confirmation email once verified. Refresh this page to check status.</p>
+          <a href="{{ request.url }}" class="btn btn-outline-warning mt-2"><i class="bi bi-arrow-clockwise me-1"></i>Refresh Status</a>
+
+        {% elif reg['payment_status'] == 'failed' %}
+          <i class="bi bi-x-circle-fill text-danger display-1 mb-3"></i>
+          <h2 class="fw-bold text-danger">Verification Failed</h2>
+          <p class="text-muted">We couldn't verify your payment screenshot. Please upload a clear screenshot showing the success message.</p>
+          <a href="{{ url_for('upload_payment', reg_id=reg['id']) }}" class="btn btn-warning mt-2">
+            <i class="bi bi-upload me-1"></i>Upload Again
+          </a>
+
+        {% else %}
+          <i class="bi bi-clock-history text-secondary display-1 mb-3"></i>
+          <h2 class="fw-bold">Payment Pending</h2>
+          <p class="text-muted">Please complete your payment and upload the screenshot.</p>
+          <a href="{{ url_for('upload_payment', reg_id=reg['id']) }}" class="btn btn-warning mt-2">
+            <i class="bi bi-upload me-1"></i>Upload Screenshot
+          </a>
+        {% endif %}
+
+        <div class="mt-4">
+          <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-house-door me-1"></i>Back to Home
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

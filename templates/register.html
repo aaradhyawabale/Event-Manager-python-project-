@@ -1,83 +1,88 @@
 {% extends "base.html" %}
 {% block title %}Register — {{ event['title'] }}{% endblock %}
-
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-lg-6 col-md-8">
 
-    <!-- Event Summary Card -->
     <div class="card event-summary-card mb-4 shadow-sm">
       <div class="card-body p-4">
         <div class="d-flex align-items-center gap-3">
-          <div class="event-icon-badge">
-            <i class="bi bi-calendar-event-fill"></i>
-          </div>
+          <div class="event-icon-badge"><i class="bi bi-calendar-event-fill"></i></div>
           <div>
             <h5 class="mb-1 fw-bold">{{ event['title'] }}</h5>
             <span class="text-muted small">
-              <i class="bi bi-geo-alt me-1"></i>{{ event['venue'] }}
-              &nbsp;|&nbsp;
+              <i class="bi bi-geo-alt me-1"></i>{{ event['venue'] }} &nbsp;|&nbsp;
               <i class="bi bi-calendar3 me-1"></i>{{ event['date'] }}
             </span>
           </div>
         </div>
+        {% if event['payment_required'] %}
+        <div class="mt-3 p-2 rounded-3" style="background:rgba(255,193,7,0.12); border:1px solid #ffc107;">
+          <i class="bi bi-cash-coin text-warning me-1"></i>
+          <strong>Registration Fee: ₹{{ '%.2f' % event['amount'] }}</strong>
+          <span class="text-muted small ms-2">— UPI payment required</span>
+        </div>
+        {% endif %}
       </div>
     </div>
 
-    <!-- Registration Form -->
+    {% if event['payment_required'] and upi_qr_b64 %}
+    <div class="card shadow-sm mb-4 border-0" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">
+      <div class="card-body p-4 text-center text-white">
+        <h5 class="fw-bold mb-1"><i class="bi bi-qr-code me-2"></i>Pay via UPI</h5>
+        <p class="text-warning mb-3">Scan the QR code below and pay <strong>₹{{ '%.2f' % event['amount'] }}</strong></p>
+        <img src="data:image/png;base64,{{ upi_qr_b64 }}" alt="UPI QR" class="rounded border border-white p-2 mb-3" style="width:200px;background:#fff;">
+        <div class="mt-2">
+          <span class="badge bg-light text-dark px-3 py-2 fs-6">
+            <i class="bi bi-phone me-1"></i>{{ event['upi_id'] }}
+          </span>
+        </div>
+        <a href="{{ upi_link }}" class="btn btn-warning btn-sm mt-3">
+          <i class="bi bi-phone me-1"></i>Open in UPI App
+        </a>
+        <p class="text-white-50 small mt-3 mb-0">Works with PhonePe, Google Pay, Paytm, BHIM</p>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="card form-card shadow-sm">
       <div class="card-body p-4">
         <h4 class="form-heading mb-1">Register for this Event</h4>
         <p class="text-muted small mb-4">Fill in your details below to confirm your spot.</p>
 
-        <form action="{{ url_for('submit_registration') }}" method="POST">
-          <!-- Hidden: pass event ID -->
+        <form action="{{ url_for('submit_registration') }}" method="POST" enctype="multipart/form-data">
           <input type="hidden" name="event_id" value="{{ event['id'] }}"/>
 
-          <!-- Name -->
           <div class="mb-3">
-            <label for="name" class="form-label fw-medium">
-              <i class="bi bi-person me-1"></i>Full Name
-            </label>
-            <input type="text" id="name" name="name" class="form-control form-control-lg"
-                   placeholder="e.g. Priya Sharma" required/>
+            <label for="name" class="form-label fw-medium"><i class="bi bi-person me-1"></i>Full Name</label>
+            <input type="text" id="name" name="name" class="form-control form-control-lg" placeholder="e.g. Priya Sharma" required/>
           </div>
-
-          <!-- Email -->
           <div class="mb-3">
-            <label for="email" class="form-label fw-medium">
-              <i class="bi bi-envelope me-1"></i>Email Address
-            </label>
-            <input type="email" id="email" name="email" class="form-control form-control-lg"
-                   placeholder="e.g. priya@college.edu" required/>
+            <label for="email" class="form-label fw-medium"><i class="bi bi-envelope me-1"></i>Email Address</label>
+            <input type="email" id="email" name="email" class="form-control form-control-lg" placeholder="e.g. priya@college.edu" required/>
           </div>
-
-          <!-- Department -->
           <div class="mb-4">
-            <label for="department" class="form-label fw-medium">
-              <i class="bi bi-building me-1"></i>Department
-            </label>
+            <label for="department" class="form-label fw-medium"><i class="bi bi-building me-1"></i>Department</label>
             <select id="department" name="department" class="form-select form-select-lg" required>
               <option value="" disabled selected>Select your department</option>
               <option>Computer Science</option>
               <option>Information Technology</option>
-              <option>Electronics & Communication</option>
+              <option>Electronics &amp; Communication</option>
               <option>Mechanical Engineering</option>
               <option>Civil Engineering</option>
               <option>Electrical Engineering</option>
               <option>Business Administration</option>
-              <option>Arts & Humanities</option>
+              <option>Arts &amp; Humanities</option>
               <option>Other</option>
             </select>
           </div>
 
           <div class="d-grid gap-2">
             <button type="submit" class="btn btn-register btn-lg">
-              <i class="bi bi-check-circle me-1"></i> Confirm Registration
+              <i class="bi bi-check-circle me-1"></i>
+              {% if event['payment_required'] %}Continue to Payment{% else %}Confirm Registration{% endif %}
             </button>
-            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left me-1"></i> Back to Events
-            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Back</a>
           </div>
         </form>
       </div>

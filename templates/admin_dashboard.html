@@ -9,9 +9,17 @@
     <h2 class="fw-bold mb-1">Admin Dashboard</h2>
     <p class="text-muted mb-0">Manage all college events from here.</p>
   </div>
-  <a href="{{ url_for('create_event') }}" class="btn btn-create">
-    <i class="bi bi-plus-lg me-1"></i> Create New Event
-  </a>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('admin_payments') }}" class="btn btn-outline-warning position-relative">
+      <i class="bi bi-cash-stack me-1"></i> Payments
+      {% if pending_payments > 0 %}
+      <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ pending_payments }}</span>
+      {% endif %}
+    </a>
+    <a href="{{ url_for('create_event') }}" class="btn btn-create">
+      <i class="bi bi-plus-lg me-1"></i> Create New Event
+    </a>
+  </div>
 </div>
 
 <!-- ── Stats Bar ── -->
@@ -56,6 +64,7 @@
             <th>Event Title</th>
             <th>Date</th>
             <th>Venue</th>
+            <th class="text-center">Fee</th>
             <th class="text-center">Registrations</th>
             <th class="text-center">Actions</th>
           </tr>
@@ -65,19 +74,16 @@
           <tr>
             <td class="text-muted">{{ loop.index }}</td>
             <td class="fw-medium">{{ event['title'] }}</td>
-            <td>
-              <span class="badge bg-primary-subtle text-primary rounded-pill px-3">
-                {{ event['date'] }}
-              </span>
-            </td>
-            <td>
-              <i class="bi bi-geo-alt me-1 text-muted"></i>{{ event['venue'] }}
-            </td>
+            <td><span class="badge bg-primary-subtle text-primary rounded-pill px-3">{{ event['date'] }}</span></td>
+            <td><i class="bi bi-geo-alt me-1 text-muted"></i>{{ event['venue'] }}</td>
             <td class="text-center">
-              <span class="badge bg-success rounded-pill px-3">
-                {{ counts[event['id']] }} registered
-              </span>
+              {% if event['payment_required'] %}
+              <span class="badge bg-warning text-dark rounded-pill px-3">₹{{ '%.0f' % event['amount'] }}</span>
+              {% else %}
+              <span class="badge bg-success-subtle text-success rounded-pill px-3">Free</span>
+              {% endif %}
             </td>
+            <td class="text-center"><span class="badge bg-success rounded-pill px-3">{{ counts[event['id']] }} registered</span></td>
             <td class="text-center">
               <a href="{{ url_for('checkin_scanner', event_id=event['id']) }}"
                  class="btn btn-sm btn-outline-success me-1" title="Check-in Attendees">

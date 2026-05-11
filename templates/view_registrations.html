@@ -52,7 +52,8 @@
             <th><i class="bi bi-person me-1"></i>Name</th>
             <th><i class="bi bi-envelope me-1"></i>Email</th>
             <th><i class="bi bi-building me-1"></i>Department</th>
-            <th>Status</th>
+            <th>Payment</th>
+            <th>Check-in</th>
           </tr>
         </thead>
         <tbody>
@@ -60,15 +61,21 @@
           <tr>
             <td class="text-muted">{{ loop.index }}</td>
             <td class="fw-medium">{{ reg['name'] }}</td>
+            <td><a href="mailto:{{ reg['email'] }}" class="text-decoration-none">{{ reg['email'] }}</a></td>
+            <td><span class="badge bg-info-subtle text-info rounded-pill px-3">{{ reg['department'] }}</span></td>
             <td>
-              <a href="mailto:{{ reg['email'] }}" class="text-decoration-none">
-                {{ reg['email'] }}
-              </a>
-            </td>
-            <td>
-              <span class="badge bg-info-subtle text-info rounded-pill px-3">
-                {{ reg['department'] }}
-              </span>
+              {% set ps = reg['payment_status'] %}
+              {% if ps == 'not_required' %}
+                <span class="badge bg-secondary rounded-pill px-3">N/A</span>
+              {% elif ps == 'verified' %}
+                <span class="badge bg-success rounded-pill px-3">✅ Paid</span>
+              {% elif ps == 'pending' %}
+                <span class="badge bg-warning text-dark rounded-pill px-3">⏳ Pending</span>
+              {% elif ps == 'manual_review' %}
+                <span class="badge bg-info rounded-pill px-3">🔍 Review</span>
+              {% else %}
+                <span class="badge bg-danger rounded-pill px-3">❌ Failed</span>
+              {% endif %}
             </td>
             <td>
               {% if reg['checked_in'] == 1 %}
