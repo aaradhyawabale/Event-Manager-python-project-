@@ -10,3 +10,4 @@ database.db
 *.sqlite3
 .DS_Store
 tempCodeRunnerFile.py
+static/qrcodes/*.png

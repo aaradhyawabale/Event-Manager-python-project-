@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Registration Confirmation</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #6366f1;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            line-height: 1.6;
+            color: #555;
+        }
+        .footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 0.8em;
+            color: #888;
+            border-top: 1px solid #eee;
+            margin-top: 20px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #6366f1;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 15px;
+        }
+        .qr-token {
+            background-color: #eee;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h2>CampusEvents Registration Confirmation</h2>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{{ name }}</strong>,</p>
+            <p>Thank you for registering for the event: <strong>{{ event_title }}</strong>!</p>
+            <p>Your registration is confirmed. Please keep this email and the attached QR code safe, as it will be used for check-in at the event entry.</p>
+            
+            <p><strong>Your QR Token:</strong></p>
+            <p class="qr-token">{{ qr_token }}</p>
+
+            <p>We look forward to seeing you there!</p>
+            <p>Best regards,<br>The CampusEvents Team</p>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ current_year }} CampusEvents. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

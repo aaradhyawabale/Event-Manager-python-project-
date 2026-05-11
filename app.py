@@ -14,9 +14,31 @@ import qrcode, io, base64
 from PIL import Image
 import cv2
 import numpy as np
+from datetime import datetime
+from flask_mail import Mail, Message
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "college_event_secret_key"  # Required for session/flash
+app.secret_key = os.getenv("SECRET_KEY", "college_event_secret_key")
+
+# ─────────────────────────────────────────────
+# FLASK-MAIL CONFIGURATION
+# ─────────────────────────────────────────────
+app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
+app.config['MAIL_PORT'] = int(os.getenv("MAIL_PORT", 587))
+app.config['MAIL_USE_TLS'] = os.getenv("MAIL_USE_TLS", "True") == "True"
+app.config['MAIL_USE_SSL'] = os.getenv("MAIL_USE_SSL", "False") == "True"
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME", "pypr945@gmail.com")
+# Gmail App Passwords usually work better without spaces
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD", "ztvllyvcvoojlvie").replace(" ", "")
+app.config['MAIL_DEFAULT_SENDER'] = app.config['MAIL_USERNAME']
+app.config['MAIL_MAX_EMAILS'] = None
+app.config['MAIL_ASCII_ATTACHMENTS'] = False
+
+mail = Mail(app)
 
 # ─────────────────────────────────────────────
 # DATABASE SETUP
@@ -24,7 +46,7 @@ app.secret_key = "college_event_secret_key"  # Required for session/flash
 
 def get_db():
     """Connect to the SQLite database."""
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), "database.db"))
     conn.row_factory = sqlite3.Row  # Allows dict-like access to rows
     return conn
 
@@ -82,6 +104,22 @@ def generate_qr_file(token):
     
     return filename
 
+def generate_qr_image_bytes(token):
+    """Generates a QR code image as bytes."""
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(token)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    return buffer.getvalue()
+
 def decode_qr_image(image_stream):
     """Decodes a QR code from an uploaded image file using OpenCV."""
     try:
@@ -101,6 +139,49 @@ def decode_qr_image(image_stream):
     except Exception as e:
         print(f"Error decoding image: {e}")
         return None
+
+def send_registration_email(to_email, name, event_title, qr_token):
+    """Sends a registration confirmation email with QR token."""
+    try:
+        print(f"DEBUG: Preparing to send email to {to_email} for event '{event_title}'")
+        
+        msg = Message(
+            subject=f"Event Registration Confirmation: {event_title}",
+            recipients=[to_email]
+        )
+        
+        # Render the HTML template
+        msg.html = render_template(
+            'email/registration_confirmation.html',
+            name=name,
+            event_title=event_title,
+            qr_token=qr_token,
+            current_year=datetime.now().year
+        )
+        
+        # Generate QR code image bytes
+        qr_image_bytes = generate_qr_image_bytes(qr_token)
+        
+        # Attach QR code image
+        msg.attach(
+            f"qr_code_{qr_token}.png",
+            "image/png",
+            qr_image_bytes
+        )
+        
+        # Send the email
+        mail.send(msg)
+        print(f"DEBUG: Confirmation email successfully sent to {to_email}")
+        return True
+        
+    except Exception as e:
+        import traceback
+        print(f"CRITICAL ERROR: Failed to send email to {to_email}")
+        print(f"Error Type: {type(e).__name__}")
+        print(f"Error Message: {str(e)}")
+        print("Full Traceback:")
+        print(traceback.format_exc())
+        return False
 
 # ─────────────────────────────────────────────
 # PUBLIC ROUTES
@@ -154,7 +235,18 @@ def submit_registration():
     # Generate and save the QR file
     generate_qr_file(qr_token)
 
-    flash(f"🎉 Registration successful! Welcome, {name}!", "success")
+    # Fetch event details for email
+    conn = get_db()
+    event = conn.execute("SELECT title FROM events WHERE id = ?", (event_id,)).fetchone()
+    event_title = event['title'] if event else "Unknown Event"
+    conn.close()
+
+    # Send confirmation email (non-blocking, with error handling)
+    if send_registration_email(email, name, event_title, qr_token):
+        flash(f"🎉 Registration successful! Welcome, {name}! A confirmation email has been sent to {email}.", "success")
+    else:
+        flash(f"🎉 Registration successful! Welcome, {name}! However, we could not send a confirmation email.", "warning")
+        
     return redirect(url_for("confirmation", qr_token=qr_token))
 
 
@@ -179,6 +271,45 @@ def confirmation(qr_token):
         generate_qr_file(qr_token)
 
     return render_template("confirmation.html", registration=registration, qr_filename=qr_filename, qr_token=qr_token)
+
+
+@app.route("/test_mail")
+def test_mail():
+    """Diagnostic route to test email configuration independently."""
+    recipient = request.args.get("email", app.config['MAIL_USERNAME'])
+    print(f"DEBUG: Running SMTP Diagnostic Test for {recipient}")
+    
+    msg = Message(
+        subject="Event System - SMTP Diagnostic Test",
+        recipients=[recipient],
+        body=f"If you are reading this, your SMTP configuration is working correctly!\n\nDetails:\nServer: {app.config['MAIL_SERVER']}\nPort: {app.config['MAIL_PORT']}\nUser: {app.config['MAIL_USERNAME']}"
+    )
+    
+    try:
+        with app.app_context():
+            mail.send(msg)
+        print("DEBUG: SMTP Diagnostic Test successful")
+        return {
+            "status": "success",
+            "message": f"Test email sent successfully to {recipient}",
+            "config_used": {
+                "server": app.config['MAIL_SERVER'],
+                "port": app.config['MAIL_PORT'],
+                "user": app.config['MAIL_USERNAME'],
+                "tls": app.config['MAIL_USE_TLS'],
+                "ssl": app.config['MAIL_USE_SSL']
+            }
+        }
+    except Exception as e:
+        import traceback
+        error_info = traceback.format_exc()
+        print(f"DEBUG: SMTP Diagnostic Test failed\n{error_info}")
+        return {
+            "status": "error",
+            "error_type": type(e).__name__,
+            "message": str(e),
+            "traceback": error_info
+        }, 500
 
 
 # ─────────────────────────────────────────────
@@ -370,4 +501,4 @@ def verify_qr():
 
 if __name__ == "__main__":
     init_db()          # Create tables on first run
-    app.run(debug=True)  # debug=True shows errors in browser
+    app.run(debug=True, port=5002)  # debug=True shows errors in browser
