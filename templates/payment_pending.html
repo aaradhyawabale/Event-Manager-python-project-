@@ -10,34 +10,38 @@
           <i class="bi bi-patch-check-fill text-success display-1 mb-3"></i>
           <h2 class="fw-bold text-success">Payment Verified!</h2>
           <p class="text-muted">Your registration for <strong>{{ reg['title'] }}</strong> is confirmed.</p>
-          <div class="alert alert-success mt-3">
+          <div class="alert alert-success mt-3 text-start">
             <strong>Name:</strong> {{ reg['name'] }}<br>
             <strong>Email:</strong> {{ reg['email'] }}<br>
-            <strong>Event:</strong> {{ reg['title'] }}<br>
-            <strong>Date:</strong> {{ reg['date'] }} | <strong>Venue:</strong> {{ reg['venue'] }}
+            <strong>Event:</strong> {{ reg['title'] }}
           </div>
-          <h5 class="mt-4 mb-2">Your Entry QR Code</h5>
-          <img src="{{ url_for('static', filename='qrcodes/' + qr_filename) }}" class="img-fluid border p-2 rounded mb-2" style="max-width:220px;">
+          <h5 class="mt-4 mb-2 text-white">Your Entry QR Code</h5>
+          <div class="upi-qr-wrapper mb-3">
+            <img src="{{ url_for('static', filename='qrcodes/' + qr_filename) }}" class="img-fluid" style="max-width:200px;">
+          </div>
           <p class="text-muted small">Show this QR at the event entry gate.</p>
 
         {% elif reg['payment_status'] == 'manual_review' %}
           <i class="bi bi-hourglass-split text-warning display-1 mb-3"></i>
           <h2 class="fw-bold text-warning">Under Review</h2>
-          <p class="text-muted">Your screenshot has been received and is being reviewed by our team.</p>
+          <p class="text-muted">Our team is manually verifying your payment screenshot.</p>
+          
           {% if payment %}
-          <div class="card border-0 bg-light p-3 text-start mt-3 mb-3">
-            <div class="small text-muted mb-1">OCR Analysis Summary</div>
-            <div><strong>Confidence Score:</strong>
-              <span class="badge {% if payment['confidence_score'] >= 75 %}bg-success{% elif payment['confidence_score'] >= 40 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+          <div class="ocr-summary-card text-start mt-3 mb-3">
+            <div class="small text-muted mb-2 text-uppercase letter-spacing-1">Analysis Results</div>
+            <div class="d-flex justify-content-between mb-2">
+              <span>Confidence Score:</span>
+              <span class="payment-status-badge {% if payment['confidence_score'] >= 75 %}payment-status-verified{% elif payment['confidence_score'] >= 40 %}payment-status-pending{% else %}payment-status-failed{% endif %}">
                 {{ payment['confidence_score'] | int }}%
               </span>
             </div>
-            {% if payment['amount_detected'] %}<div class="mt-1"><strong>Amount Detected:</strong> ₹{{ payment['amount_detected'] }}</div>{% endif %}
-            {% if payment['txn_id_detected'] %}<div class="mt-1"><strong>Transaction ID:</strong> {{ payment['txn_id_detected'] }}</div>{% endif %}
+            {% if payment['amount_detected'] %}<div class="mb-1 small"><strong>Amount Detected:</strong> ₹{{ payment['amount_detected'] }}</div>{% endif %}
+            {% if payment['txn_id_detected'] %}<div class="mb-1 small"><strong>Transaction ID:</strong> {{ payment['txn_id_detected'] }}</div>{% endif %}
           </div>
           {% endif %}
-          <p class="text-muted small">You'll receive a confirmation email once verified. Refresh this page to check status.</p>
-          <a href="{{ request.url }}" class="btn btn-outline-warning mt-2"><i class="bi bi-arrow-clockwise me-1"></i>Refresh Status</a>
+          
+          <p class="text-muted small">Confirmation will be sent via email. You can refresh this page anytime.</p>
+          <a href="{{ request.url }}" class="btn btn-outline-warning mt-2 w-100"><i class="bi bi-arrow-clockwise me-1"></i>Refresh Status</a>
 
         {% elif reg['payment_status'] == 'failed' %}
           <i class="bi bi-x-circle-fill text-danger display-1 mb-3"></i>

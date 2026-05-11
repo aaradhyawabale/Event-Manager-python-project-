@@ -27,23 +27,26 @@
             <input type="text" id="venue" name="venue" class="form-control form-control-lg" placeholder="e.g. Main Auditorium" required/>
           </div>
 
-          <!-- Payment Toggle -->
-          <div class="card border-warning mb-4 p-3">
-            <div class="form-check form-switch mb-2">
-              <input class="form-check-input" type="checkbox" role="switch" id="payment_required" name="payment_required" onchange="togglePayment(this)">
-              <label class="form-check-label fw-bold text-warning" for="payment_required">
-                <i class="bi bi-cash-coin me-1"></i> Require Payment?
+          <!-- Payment Configuration Section -->
+          <div class="payment-toggle-container mb-4">
+            <div class="form-check form-switch d-flex align-items-center gap-3 mb-3">
+              <input class="form-check-input" type="checkbox" role="switch" id="payment_required" name="payment_required" onchange="togglePayment(this)" style="width: 2.5em; height: 1.25em;">
+              <label class="form-check-label fw-bold text-warning fs-5" for="payment_required">
+                <i class="bi bi-cash-coin me-1"></i> Require Registration Fee?
               </label>
             </div>
-            <div id="payment_fields" style="display:none;">
-              <div class="mb-3">
-                <label for="upi_id" class="form-label fw-medium"><i class="bi bi-phone me-1"></i>UPI ID</label>
-                <input type="text" id="upi_id" name="upi_id" class="form-control" placeholder="e.g. yourname@upi or 9876543210@paytm"/>
-                <div class="form-text">Students will scan a QR to pay this UPI ID.</div>
-              </div>
-              <div class="mb-2">
-                <label for="amount" class="form-label fw-medium"><i class="bi bi-currency-rupee me-1"></i>Amount (₹)</label>
-                <input type="number" id="amount" name="amount" class="form-control" placeholder="e.g. 200" min="1" step="0.01"/>
+
+            <div id="payment_fields" style="display:none;" class="pt-2 border-top border-secondary-subtle">
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <label for="upi_id" class="form-label fw-medium"><i class="bi bi-phone me-1"></i>UPI ID</label>
+                  <input type="text" id="upi_id" name="upi_id" class="form-control" placeholder="e.g. yourname@upi"/>
+                  <div class="form-text text-muted-small">A dynamic QR will be generated for this ID.</div>
+                </div>
+                <div class="col-md-4">
+                  <label for="amount" class="form-label fw-medium"><i class="bi bi-currency-rupee me-1"></i>Amount</label>
+                  <input type="number" id="amount" name="amount" class="form-control" placeholder="0.00" min="1" step="0.01"/>
+                </div>
               </div>
             </div>
           </div>
